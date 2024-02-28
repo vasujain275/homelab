@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  filebrowser:
+    image: "filebrowser/filebrowser:latest"
+    container_name: "filebrowser"
+    user: 1000:1000
+    ports:
+      - 9600:80
+    volumes:
+      -  /home/pi/:/srv
+      -  /home/pi/services/filebrowser/filebrowser.db:/database.db
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
