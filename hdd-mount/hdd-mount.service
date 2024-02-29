@@ -1,0 +1,14 @@
+[Unit]
+Description=Mount /dev/sda1 to /home/pi/hdd
+Requires=local-fs.target
+After=local-fs.target
+
+[Mount]
+What=/dev/sda1
+Where=/home/pi/hdd
+Type=auto
+Options=defaults
+
+[Install]
+WantedBy=multi-user.target
+
