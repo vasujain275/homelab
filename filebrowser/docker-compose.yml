@@ -11,5 +11,3 @@ services:
       -  /home/pi/:/srv
       -  /home/pi/services/filebrowser/filebrowser.db:/database.db
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
