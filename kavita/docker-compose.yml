@@ -1,0 +1,14 @@
+services:
+    kavita:
+        image: jvmilazz0/kavita:latest    # Using the stable branch from the offical repo.
+        container_name: kavita
+        volumes:
+            - /home/pi/hdd/books/manga:/manga            
+            - /home/pi/hdd/books/ebooks:/books
+            - /home/pi/services/kavita/config:/kavita/config   
+                                        # /kavita/config must not be changed
+        environment:
+            - TZ=Asia/Kolkata
+        ports:
+            - "5000:5000" # Change the public port (the first 5000) if you have conflicts with other services
+        restart: unless-stopped
