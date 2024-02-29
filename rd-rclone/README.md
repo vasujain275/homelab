@@ -14,6 +14,7 @@ Move this file to -> /etc/systemd/system/
 
 Then follow these commands - 
 ```zsh
+mkdir ~/rd
 sudo systemctl daemon-reload
 sudo systemctl enable rclone-debrid-mount.service
 sudo systemctl start rclone-debrid-mount.service
