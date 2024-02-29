@@ -3,11 +3,10 @@ Description=Mount /dev/sda1 to /home/pi/hdd
 Requires=local-fs.target
 After=local-fs.target
 
-[Mount]
-What=/dev/sda1
-Where=/home/pi/hdd
-Type=auto
-Options=defaults
+[Service]
+Type=oneshot
+ExecStart=/bin/mount /dev/sda1 /home/pi/hdd
+RemainAfterExit=true
 
 [Install]
 WantedBy=multi-user.target
