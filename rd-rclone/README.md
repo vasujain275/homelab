@@ -3,6 +3,7 @@ Here is the process to mount Real Debrid to /home/pi/rd -
  - Install rclone
  - Use rclone config
  - Choose `n`
+ - Choose name `rd`
  - Choose `webdav`
  - Choose `other`
  - Enter WebDav URL from real-debrid.com
