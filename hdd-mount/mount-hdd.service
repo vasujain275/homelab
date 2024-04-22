@@ -9,5 +9,4 @@ ExecStart=/bin/mount /dev/sda1 /home/pi/hdd -o rw,uid=1000,gid=1000
 RemainAfterExit=true
 
 [Install]
-WantedBy=multi-user.target
-
+WantedBy=sysinit.target
