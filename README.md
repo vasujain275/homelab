@@ -144,7 +144,30 @@ sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
 sudo tailscale up --advertise-routes=192.168.0.0/24,192.168.1.0/24 --advertise-exit-node
 ```
 
-Ref - https://tailscale.com/kb/1019/subnets
+## Subnets Optimisation for Ethernet
+
+```zsh
+NETDEV=$(ip route show 0/0 | cut -f5 -d' ')
+sudo ethtool -K $NETDEV rx-udp-gro-forwarding on rx-gro-list off
+```
+
+### Enable on each boot
+
+Changes made via ethtool are not persistent and will be lost after the machine shuts down. On Linux distributions using networkd-dispatcher (which you can verify with systemctl is-enabled networkd-dispatcher), copy and run the following commands to create a script that will configure these settings on each boot.
+
+```zsh
+printf '#!/bin/sh\n\nethtool -K %s rx-udp-gro-forwarding on rx-gro-list off \n' "$(ip route show 0/0 | cut -f5 -d" ")" | sudo tee /etc/networkd-dispatcher/routable.d/50-tailscale
+sudo chmod 755 /etc/networkd-dispatcher/routable.d/50-tailscale
+```
+
+Test the created script to ensure it runs successfully on your machine:
+
+```zsh
+sudo /etc/networkd-dispatcher/routable.d/50-tailscale
+test $? -eq 0 || echo 'An error occurred.'
+```
+
+Ref - https://tailscale.com/kb/1019/subnets , https://tailscale.com/kb/1320/performance-best-practices
 
 # Cloudflare Tunnels
 
