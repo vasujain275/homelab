@@ -68,18 +68,29 @@ nmcli con show
 Copy the `name` of wifi type.
 2. Backup original Settings
 ```zsh
-nmcli con show "Name that you copied" | tee original_network_settings.txt
+sudo nmcli con show "Name that you copied" | tee original_network_settings.txt
 ```
 3. Add the prefered static ip 
 ```zsh
 sudo nmcli con mod "Name that you copied" ipv4.method manual ipv4.addr 192.168.1.50/24
 
-nmcli con mod "Name that you copied" ipv4.addr 192.168.1.50/24 ipv4.gateway 192.168.1.1 ipv4.dns 1.1.1.1 ipv4.method manual
+sudo nmcli con mod "Name that you copied" ipv4.addr 192.168.1.50/24 ipv4.gateway 192.168.1.1 ipv4.dns 1.1.1.1 ipv4.method manual
 
 ```
 
 Refrence - https://nitratine.net/blog/post/how-to-set-a-static-ip-address-on-a-raspberry-pi-5/
 
+## ZSH4HUMANS Setup
+
+```zsh
+if command -v curl >/dev/null 2>&1; then
+  sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh4humans/v5/install)"
+else
+  sh -c "$(wget -O- https://raw.githubusercontent.com/romkatv/zsh4humans/v5/install)"
+fi
+```
+
+Refrence - https://github.com/romkatv/zsh4humans
 
 # Setting Up New Github SSH Keys
 
