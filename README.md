@@ -80,7 +80,7 @@ sudo nmcli con mod "Name that you copied" ipv4.addr 192.168.1.50/24 ipv4.gateway
 
 Refrence - https://nitratine.net/blog/post/how-to-set-a-static-ip-address-on-a-raspberry-pi-5/
 
-## ZSH4HUMANS Setup
+# ZSH4HUMANS Setup
 
 ```zsh
 if command -v curl >/dev/null 2>&1; then
