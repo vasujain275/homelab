@@ -24,7 +24,12 @@ sudo systemctl edit docker.service
 ```ini
 [Unit]
 Requires=mount-hdd.service
+
+[Service]
+ExecStartPre=/bin/sleep 30
 ```
+
+**Make sure to edit the file above the `Lines below this comment will be discarded` comment in the file**
 
 - Reload and reboot
 
