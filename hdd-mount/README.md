@@ -5,7 +5,7 @@ Then Run the following commands -
 ```zsh
 mkdir ~/hdd
 sudo systemctl daemon-reload
-sudo systemctl enable hdd-mount.service
+sudo systemctl enable mount-hdd.service
 ```
 
 
