@@ -1,5 +1,7 @@
 Here is the process to mount Real Debrid to /home/pi/rd - 
 
+## Rclone Setup - 
+
  - Install rclone
  - Use rclone config
  - Choose `n`
@@ -11,9 +13,16 @@ Here is the process to mount Real Debrid to /home/pi/rd -
  - Save and Exit
 
 
-Move this file to -> /etc/systemd/system/
+## Move `rclone-debrid-mount.service` file to -> /etc/systemd/system/
 
-Then follow these commands - 
+## Update `/etc/fuse.conf` and uncommnet the following - 
+
+```
+user_allow_other
+```
+
+## Then follow these commands - 
+
 ```zsh
 mkdir ~/rd
 sudo systemctl daemon-reload
