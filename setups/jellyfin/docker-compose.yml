@@ -11,6 +11,7 @@ services:
     volumes:
       - /home/pi/services/jellyfin/config:/config
       - /home/pi/hdd/Media:/data
+      - /home/pi/rd:/rd:ro
     ports:
       - 8096:8096
       - 8920:8920 #optional

@@ -90,19 +90,19 @@ alias td='yt-dlp --external-downloader aria2c -o "%(title)s."'
 alias download='aria2c --split=16 --max-connection-per-server=16 --timeout=600 --max-download-limit=10M --file-allocation=none'
 
 # VPN Aliases
-alias vpn-up='sudo tailscale up --exit-node=raspberrypi --accept-routes'
-alias vpn-down='sudo tailscale down'
+#alias vpn-up='sudo tailscale up --exit-node=raspberrypi --accept-routes'
+#alias vpn-down='sudo tailscale down'
 warp ()
 {
     sudo systemctl "$1" warp-svc
 }
 
 # Other Aliases
-alias apps-space='expac -H M "%011m\t%-20n\t%10d" $(comm -23 <(pacman -Qqe | sort) <(pacman -Qqg base base-devel | sort)) | sort -n'
+#alias apps-space='expac -H M "%011m\t%-20n\t%10d" $(comm -23 <(pacman -Qqe | sort) <(pacman -Qqg base base-devel | sort)) | sort -n'
 alias files-space='sudo ncdu --exclude /.snapshots /'
 alias ld='lazydocker'
-alias cr='mpv --yt-dlp-raw-options=cookies-from-browser=brave'
-alias battery='upower -i /org/freedesktop/UPower/devices/battery_BAT1'
+#alias cr='mpv --yt-dlp-raw-options=cookies-from-browser=brave'
+#alias battery='upower -i /org/freedesktop/UPower/devices/battery_BAT1'
 alias y='yazi'
 lsfind ()
 {
