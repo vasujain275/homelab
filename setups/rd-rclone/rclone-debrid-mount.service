@@ -5,7 +5,7 @@ After=network-online.target
 [Service]
 Type=simple
 User=pi
-ExecStart=/usr/bin/rclone mount rd: /home/pi/rd --dir-cache-time 10s --multi-thread-streams=0 --cutoff-mode=cautious --vfs-cache-mode minimal --network-mode --buffer-size=0 --read-only
+ExecStart=/usr/bin/rclone mount rd: /home/pi/rd --dir-cache-time 10s --multi-thread-streams=0 --cutoff-mode=cautious --vfs-cache-mode minimal --network-mode --buffer-size=0 --read-only --allow-other
 Restart=always
 RestartSec=10
 
