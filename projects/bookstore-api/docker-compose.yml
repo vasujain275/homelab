@@ -21,5 +21,4 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@postgres:5432/${POSTGRES_DB:-bookstoreDB}
-    env_file:
-      - .env
+      - PORT=8069
