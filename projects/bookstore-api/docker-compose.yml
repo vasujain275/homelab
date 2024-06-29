@@ -10,6 +10,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
       POSTGRES_DB: ${POSTGRES_DB:-bookstoreDB}
+      restart: unless-stopped
 
   server:
     image: vasujain275/bookstore-api:main
@@ -22,3 +23,4 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@postgres:5432/${POSTGRES_DB:-bookstoreDB}
       - PORT=8069
+    restart: unless-stopped
