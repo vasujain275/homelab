@@ -1,0 +1,9 @@
+version: '3'
+services:
+  jdownloader-2:
+    image: jlesage/jdownloader-2
+    ports:
+      - "5800:5800"
+    volumes:
+      - "/home/pi/services/jdownloader/config:/config:rw"
+      - "/home/pi/hdd/Media:/output:rw"
