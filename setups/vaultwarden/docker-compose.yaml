@@ -1,0 +1,53 @@
+version: '3'
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    volumes:
+      - /vw-data/:/data/
+    expose:
+      - "80"
+    environment:
+      - SIGNUPS_ALLOWED=false
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    ports:
+      - "80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - vaultwarden
+    restart: unless-stopped
+
+  backup:
+    image: ttionya/vaultwarden-backup:latest
+    container_name: vaultwarden-backup
+    restart: always
+    volumes:
+      - /vw-data/:/bitwarden/data/
+      - vaultwarden-rclone-data:/config/
+    environment:
+      - CRON=0 0 * * *  # Daily backup at midnight
+      - ZIP_ENABLE=TRUE
+      - ZIP_PASSWORD=${BACKUP_ZIP_PASSWORD}
+      - RCLONE_REMOTE_DIR=${RCLONE_REMOTE_DIR}
+      - BACKUP_FILE_SUFFIX=%Y%m%d
+      - BACKUP_KEEP_DAYS=7
+      - TIMEZONE=UTC
+      - MAIL_SMTP_ENABLE=TRUE
+      - MAIL_SMTP_VARIABLES=${MAIL_SMTP_VARIABLES}
+      - MAIL_TO=${MAIL_TO}
+      - MAIL_WHEN_SUCCESS=TRUE
+      - MAIL_WHEN_FAILURE=TRUE
+    env_file:
+      - .env
+
+volumes:
+  vaultwarden-rclone-data:
+    name: vaultwarden-rclone-data
