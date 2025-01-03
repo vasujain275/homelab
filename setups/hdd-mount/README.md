@@ -4,10 +4,10 @@ To mount your external HDD automatically at boot, follow these steps:
 
 1. **Copy the systemd service file:**
 
-   Copy the `hdd-mount.service` file from your repository to `/etc/systemd/system/`:
+   Copy the `mount-hdd.service` file from your repository to `/etc/systemd/system/`:
 
    ```zsh
-   sudo cp hdd-mount.service /etc/systemd/system/
+   sudo cp mount-hdd.service /etc/systemd/system/
    ```
 
 2. **Copy the mounting script:**
