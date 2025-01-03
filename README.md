@@ -99,33 +99,7 @@ Refer to the official Docker installation guide for Debian [here](https://docs.d
 
 ---
 
-## 5. Mounting External Drive Persistently
-
-Follow these steps to mount an **exFAT** drive to `/home/pi/hdd` and ensure it mounts automatically on boot.
-
-### 1. Find the `PARTUUID` of the Drive
-```bash
-lsblk -o NAME,PARTUUID,MOUNTPOINT
-```
-
-### 2. Create a Mount Point
-```bash
-sudo mkdir -p /home/pi/hdd
-sudo chown pi:pi /home/pi/hdd
-```
-
-### 3. Edit `/etc/fstab`
-Add the following line to `/etc/fstab`:
-```ini
-PARTUUID=your-part-uuid /home/pi/hdd exfat defaults,nofail,x-systemd.device-timeout=5 0 2
-```
-
-### 4. Test the Configuration
-```bash
-sudo mount -a
-df -h
-```
-
+## 5. Ensure to follow steps in `setups/services/hdd-mount` to mount external hdd on boot
 ---
 
 ## 6. Static IP Configuration
