@@ -1,11 +1,11 @@
 [Unit]
-Description=Mount /dev/sda1 to /home/pi/hdd
+Description=Mount /dev/sdX to /home/pi/hdd
 Requires=local-fs.target
 After=local-fs.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/mount /dev/sda1 /home/pi/hdd -o rw,uid=1000,gid=1000
+ExecStart=/usr/local/bin/mount-hdd.sh
 RemainAfterExit=true
 
 [Install]
