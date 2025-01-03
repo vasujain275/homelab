@@ -31,7 +31,7 @@ To mount your external HDD automatically at boot, follow these steps:
    ```zsh
    mkdir ~/hdd
    sudo systemctl daemon-reload
-   sudo systemctl enable hdd-mount.service
+   sudo systemctl enable mount-hdd.service
    ```
 
 4. **Ensure HDD mounts before Docker starts:**
