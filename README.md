@@ -1,91 +1,158 @@
-# OS Installation
-- Use Rapsberry pi Imager to burn os to sd card
-- Make sure to install `Raspberry Pi OS Lite 64-bit`
-- Username - `pi`
+# Raspberry Pi Setup Guide
 
-# Setup ssh keys
-- Go to ~/.shh folder on your pc and copy the public ssh key you want to use
-- Ssh to raspberrypi using password, then run the following commands
+This guide outlines the steps for setting up a Raspberry Pi with Docker, SSH, Tailscale, Syncthing, and other essential tools for a homelab setup.
 
-```zsh
-mkdir .ssh
-cd .ssh
-touch authorized_keys
-nano authorized_keys  
-```
+---
 
-# First Update
-```zsh
+## Table of Contents
+
+1. [OS Installation](#os-installation)
+2. [SSH Setup](#setup-ssh-keys)
+3. [First System Update](#first-update)
+4. [Docker Installation](#docker-install)
+5. [Mounting External Drive Persistently](#mounting-external-drive-persistently)
+6. [Static IP Configuration](#static-ip-config)
+7. [ZSH4HUMANS Setup](#zsh4humans-setup)
+8. [Setting Up GitHub SSH Keys](#setting-up-new-github-ssh-keys)
+9. [Tailscale Setup](#tailscale-setup)
+10. [Cloudflare Tunnels Setup](#cloudflare-tunnels)
+11. [Syncthing Setup](#syncthing-setup)
+
+---
+
+## 1. OS Installation
+
+1. **Burn OS to SD Card**:
+   - Use **Raspberry Pi Imager** to burn **Raspberry Pi OS Lite 64-bit** to your SD card.
+   - Default username: `pi`.
+
+---
+
+## 2. Setup SSH Keys
+
+1. **Copy SSH Key**:
+   - On your PC, go to the `~/.ssh` folder and copy the public SSH key you wish to use.
+
+2. **SSH to Raspberry Pi**:
+   - SSH into the Raspberry Pi using the password:
+     ```bash
+     ssh pi@<raspberry-pi-ip>
+     ```
+   - Run the following commands to set up SSH key authentication:
+     ```bash
+     mkdir .ssh
+     cd .ssh
+     touch authorized_keys
+     nano authorized_keys
+     ```
+   - Paste your public key into `authorized_keys` and save.
+
+---
+
+## 3. First System Update
+
+To ensure your Raspberry Pi is up-to-date, run the following commands:
+```bash
 sudo apt update && sudo apt upgrade
 ```
 
-# Docker Install
-## Uninstall any conflicting versions
-Run the following command to uninstall all conflicting packages:
+---
 
-```zsh
+## 4. Docker Installation
+
+### Uninstall Conflicting Versions
+
+To remove any existing Docker installations:
+```bash
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
 ```
 
-## Installing Docker through apt
+### Install Docker
 
-1. Set up Docker's apt repository.
-```zsh
-# Add Docker's official GPG key:
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
+1. **Set up Docker's Apt Repository**:
+   ```bash
+   sudo apt-get update
+   sudo apt-get install ca-certificates curl
+   sudo install -m 0755 -d /etc/apt/keyrings
+   sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+   sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
+   echo \
+     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+     $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   sudo apt-get update
+   ```
+
+2. **Install Docker**:
+   ```bash
+   sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   ```
+
+3. **Add User to Docker Group**:
+   ```bash
+   sudo groupadd docker
+   sudo usermod -aG docker $USER
+   ```
+
+Refer to the official Docker installation guide for Debian [here](https://docs.docker.com/engine/install/debian/).
+
+---
+
+## 5. Mounting External Drive Persistently
+
+Follow these steps to mount an **exFAT** drive to `/home/pi/hdd` and ensure it mounts automatically on boot.
+
+### 1. Find the `PARTUUID` of the Drive
+```bash
+lsblk -o NAME,PARTUUID,MOUNTPOINT
 ```
 
-2. Install the Docker packages.
-```zsh
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+### 2. Create a Mount Point
+```bash
+sudo mkdir -p /home/pi/hdd
+sudo chown pi:pi /home/pi/hdd
 ```
 
-3. Added User to Docker Group - 
-```zsh
-sudo groupadd docker
-sudo usermod -aG docker $USER
+### 3. Edit `/etc/fstab`
+Add the following line to `/etc/fstab`:
+```ini
+PARTUUID=your-part-uuid /home/pi/hdd exfat defaults,nofail,x-systemd.device-timeout=5 0 2
 ```
 
-Refrence - https://docs.docker.com/engine/install/debian/
+### 4. Test the Configuration
+```bash
+sudo mount -a
+df -h
+```
 
-# Configure `mount-hdd.service` before proceeding
+---
 
+## 6. Static IP Configuration
 
-# Static IP Config
-
-1. Check for interface name
-```zsh
+### 1. Find Network Interface Name
+```bash
 nmcli con show
 ```
-Copy the `name` of wifi type.
-2. Backup original Settings
-```zsh
+Copy the `name` of the wifi connection.
+
+### 2. Backup Original Settings
+```bash
 sudo nmcli con show "Name that you copied" | tee original_network_settings.txt
 ```
-3. Add the prefered static ip 
-```zsh
+
+### 3. Set Static IP
+```bash
 sudo nmcli con mod "Name that you copied" ipv4.method manual ipv4.addr 192.168.1.50/24
-
 sudo nmcli con mod "Name that you copied" ipv4.addr 192.168.1.50/24 ipv4.gateway 192.168.1.1 ipv4.dns 1.1.1.1 ipv4.method manual
-
 ```
 
-Refrence - https://nitratine.net/blog/post/how-to-set-a-static-ip-address-on-a-raspberry-pi-5/
+---
 
-# ZSH4HUMANS Setup
+## 7. ZSH4HUMANS Setup
 
-```zsh
+To install **ZSH4HUMANS** for an enhanced Zsh experience:
+```bash
 if command -v curl >/dev/null 2>&1; then
   sh -c "$(curl -fsSL https://raw.githubusercontent.com/romkatv/zsh4humans/v5/install)"
 else
@@ -93,110 +160,89 @@ else
 fi
 ```
 
-Refrence - https://github.com/romkatv/zsh4humans
+---
 
-# Setting Up New Github SSH Keys
+## 8. Setting Up New GitHub SSH Keys
 
-## Generating a new SSH Key
-```shell
+### 1. Generate New SSH Key
+```bash
 ssh-keygen -t ed25519 -C "vasujain275@gmail.com"
 ```
-Use `homelab_gh` for key name.
+Use `homelab_gh` as the key name.
 
-## Adding your SSH key to the ssh-agent
-
-```shell
+### 2. Add SSH Key to the SSH Agent
+```bash
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/homelab_gh
 ```
 
-Refrences - [Ref 1](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) 
+### 3. Add SSH Key to GitHub
+Follow the [GitHub guide](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).
 
-## Adding a new SSH key to your GitHub account
+---
 
-Follow this guide - https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account
+## 9. Tailscale Setup
 
-# Tailscale Setup - 
-
-## Install Tailscale - 
-
-```zsh
+### 1. Install Tailscale
+```bash
 curl -fsSL https://tailscale.com/install.sh | sh
 ```
 
-## Login - 
-
-```zsh
+### 2. Login
+```bash
 sudo tailscale login
 ```
 
-## Subnets Setup - 
-
-1. To enable local network access / exit node from raspberry pi - 
-
-```zsh
+### 3. Enable Subnets
+Enable local network access and configure the Raspberry Pi as an exit node:
+```bash
 echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
 echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
 sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
 ```
 
-2. Now, Enable subnet routes from the admin console
-3. Now run the following command on the pi - 
-
-```zsh
+Enable subnet routes from the admin console and run the following command:
+```bash
 sudo tailscale up --advertise-routes=192.168.0.0/24,192.168.1.0/24 --advertise-exit-node
 ```
 
-## Subnets Optimisation for Ethernet
-
-```zsh
+### 4. Subnet Optimisation for Ethernet
+```bash
 NETDEV=$(ip route show 0/0 | cut -f5 -d' ')
 sudo ethtool -K $NETDEV rx-udp-gro-forwarding on rx-gro-list off
 ```
 
-### Enable on each boot
-
-Changes made via ethtool are not persistent and will be lost after the machine shuts down. On Linux distributions using networkd-dispatcher (which you can verify with systemctl is-enabled networkd-dispatcher), copy and run the following commands to create a script that will configure these settings on each boot.
-
-```zsh
+### 5. Enable on Boot
+```bash
 printf '#!/bin/sh\n\nethtool -K %s rx-udp-gro-forwarding on rx-gro-list off \n' "$(ip route show 0/0 | cut -f5 -d" ")" | sudo tee /etc/networkd-dispatcher/routable.d/50-tailscale
 sudo chmod 755 /etc/networkd-dispatcher/routable.d/50-tailscale
 ```
 
-Test the created script to ensure it runs successfully on your machine:
+---
 
-```zsh
-sudo /etc/networkd-dispatcher/routable.d/50-tailscale
-test $? -eq 0 || echo 'An error occurred.'
-```
+## 10. Cloudflare Tunnels Setup
 
-Ref - https://tailscale.com/kb/1019/subnets , https://tailscale.com/kb/1320/performance-best-practices
+1. Navigate to **Cloudflare Dashboard** > **Zero Trust** > **Networks** > **Tunnels**.
+2. Configure the tunnel as per the instructions.
 
-# Cloudflare Tunnels
+---
 
-Go to `Cloudflare Dashboard` > `Zero Trust` > `Networks` > `Tunnels` then configure.
+## 11. Syncthing Setup
 
-# Synchting Setup
-
-## Install Syncthing
-
-```zsh
+### 1. Install Syncthing
+```bash
 sudo mkdir -p /etc/apt/keyrings
 sudo curl -L -o /etc/apt/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg
 echo "deb [signed-by=/etc/apt/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable" | sudo tee /etc/apt/sources.list.d/syncthing.list
 
-# Update and install syncthing:
 sudo apt-get update
 sudo apt-get install syncthing
-
 ```
 
-Refrence - https://apt.syncthing.net/
-
-# Enable and Start the Service
-
-```zsh
+### 2. Enable and Start the Service
+```bash
 sudo systemctl enable syncthing@pi.service
 sudo systemctl start syncthing@pi.service
 ```
 
+---
