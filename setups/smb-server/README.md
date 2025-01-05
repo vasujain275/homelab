@@ -49,5 +49,12 @@ sudo systemctl restart smbd
 - GO to File Browser > Other Locations > Enter Server Address > smb://192.168.1.50/pi-shared
 - Then Enter the Username and Password you configured on the Server
 
+## Windows Client Side Config
+
+- Open Terminal and use this command
+```bash
+net use s: \\192.168.1.50\pi-shared
+```
+
 
 ## Refrenced from - https://youtu.be/8QxJWW0mjAs
