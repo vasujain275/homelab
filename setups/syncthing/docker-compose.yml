@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  syncthing:
+    image: syncthing/syncthing:latest
+    container_name: syncthing
+    hostname: raspberrypi
+    restart: unless-stopped
+    ports:
+      - "8384:8384"         # Web UI
+      - "22000:22000/tcp"   # Sync protocol (TCP)
+      - "22000:22000/udp"   # Sync protocol (QUIC/UDP)
+      - "21027:21027/udp"   # Local discovery
+    volumes:
+      - /home/pi/services/syncthing/config:/var/syncthing/config
+      - /home/pi/services/syncthing/data:/var/syncthing/data
+    environment:
+      - PUID=1000
+      - PGID=1000
