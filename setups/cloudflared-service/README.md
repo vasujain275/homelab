@@ -1,33 +1,37 @@
-# 🛡️ Cloudflare Tunnel (CLI-based) + Caddy Reverse Proxy Setup (Raspberry Pi)
+# 🛠️ Full Guide: Caddy Reverse Proxy + Cloudflare Tunnel (CLI-Managed)
 
-A full guide to replace GUI-managed tunnels with declarative, version-controlled CLI tunnels + Caddy.
+This guide sets up **Caddy** as the reverse proxy for all your self-hosted services, with **Cloudflare Tunnel** forwarding HTTPS traffic to Caddy on port 2015. This setup is robust, version-controllable, and uses a single `cloudflared` tunnel.
 
 ---
 
 ## ✅ Prerequisites
 
-- `cloudflared` installed (`which cloudflared`)
-- A tunnel already created via:
-
-  ```bash
-  cloudflared tunnel create pi-homelab
-  ```
-
-- Tunnel credentials file saved (usually at `~/.cloudflared/<UUID>.json`)
-- Domain set up with Cloudflare
-- Caddy installed (bare metal or Docker)
+- Domain with Cloudflare (e.g., `vasujain.me`)
+- Raspberry Pi or Linux server with:
+  - `cloudflared` installed
+  - `caddy` installed (bare metal preferred)
+- Services already running locally (e.g., Immich, Linkding, Gitea, etc.)
 
 ---
 
-## 🔧 Step 1: Create Cloudflare Tunnel Config
+## 📁 Step 1: Create Cloudflared Tunnel and Config
 
-Create a file at:
+If not already done:
 
 ```bash
+cloudflared tunnel create pi-homelab
+```
+
+Save the generated credentials JSON (usually at `~/.cloudflared/<uuid>.json`)
+
+Now create the config file:
+
+```bash
+sudo mkdir -p /etc/cloudflared
 sudo nano /etc/cloudflared/config.yaml
 ```
 
-Example content:
+Paste:
 
 ```yaml
 tunnel: pi-homelab
@@ -35,38 +39,33 @@ credentials-file: /home/pi/.cloudflared/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.jso
 
 ingress:
   - hostname: immich.vasujain.me
-    service: http://localhost:2283
+    service: http://localhost:2015
 
   - hostname: linkding.vasujain.me
-    service: http://localhost:9090
+    service: http://localhost:2015
 
   - hostname: git.vasujain.me
-    service: http://localhost:9220
+    service: http://localhost:2015
 
   - hostname: files.vasujain.me
-    service: http://localhost:9600
+    service: http://localhost:2015
 
   - service: http_status:404
 ```
 
-> Or forward all traffic to Caddy on `:2015`:
+> Replace `xxxxxxxx-xxxx...` with actual UUID filename.
 
-```yaml
-  - hostname: immich.vasujain.me
-    service: http://localhost:2015
-```
+This will forward all public domains to your Caddy running on `localhost:2015`.
 
 ---
 
-## ⚙️ Step 2: Create systemd Service
-
-Create a new service file:
+## 🧩 Step 2: Set Up systemd Service for cloudflared
 
 ```bash
 sudo nano /etc/systemd/system/cloudflared.service
 ```
 
-Paste the following:
+Paste:
 
 ```ini
 [Unit]
@@ -76,7 +75,7 @@ After=network.target
 [Service]
 TimeoutStartSec=0
 Type=simple
-User=pi  # Change to your actual user
+User=pi  # change if needed
 ExecStart=/usr/local/bin/cloudflared tunnel run pi-homelab
 Restart=always
 RestartSec=5s
@@ -85,11 +84,7 @@ RestartSec=5s
 WantedBy=multi-user.target
 ```
 
-> Replace `/usr/local/bin/cloudflared` with output of `which cloudflared`.
-
----
-
-## 🚀 Step 3: Enable and Start the Tunnel
+Enable and start it:
 
 ```bash
 sudo systemctl daemon-reexec
@@ -98,37 +93,23 @@ sudo systemctl enable cloudflared
 sudo systemctl start cloudflared
 ```
 
----
-
-## 🪵 Step 4: Verify Status
+Check status:
 
 ```bash
 sudo journalctl -u cloudflared -f
 ```
 
-Look for lines like:
-
-```
-Connected to tunnel.cloudflare.com
-Registered connection ...
-```
-
 ---
 
-## 🧭 Optional: Use Caddy for All Routing
+## 🌐 Step 3: Caddy Configuration (Bare Metal)
 
-Instead of defining all services in `config.yaml`, point them all to `localhost:2015`:
+Edit or create your `Caddyfile` (default: `/etc/caddy/Caddyfile`):
 
-```yaml
-ingress:
-  - hostname: immich.vasujain.me
-    service: http://localhost:2015
-  - hostname: linkding.vasujain.me
-    service: http://localhost:2015
-  - service: http_status:404
+```bash
+sudo nano /etc/caddy/Caddyfile
 ```
 
-Then in your Caddyfile:
+Example:
 
 ```caddyfile
 immich.vasujain.me {
@@ -148,29 +129,60 @@ files.vasujain.me {
 }
 ```
 
-> Restart Caddy after changes.
+Then restart Caddy:
+
+```bash
+sudo systemctl restart caddy
+```
 
 ---
 
-## 🆚 GUI vs CLI Tunnel Comparison
+## 🔒 Optional: Add Local TLS
 
-| Feature                 | GUI Dashboard              | CLI YAML + Service         |
-|------------------------|----------------------------|----------------------------|
-| Setup Simplicity       | ✅ Easier                  | ❌ Manual YAML             |
-| Version Control Ready  | ❌ No                      | ✅ Yes                     |
-| Editing Hostnames      | ✅ GUI Friendly            | ❌ YAML edit + restart     |
-| Reproducibility        | ❌ Not portable            | ✅ Fully portable          |
-| Works with Caddy       | ✅ Yes                     | ✅ Yes                     |
+Since cloudflared handles HTTPS and Caddy is only local:
+
+- You can disable HTTPS enforcement in Caddy using:
+
+```caddyfile
+http:// {
+  # fallback for local requests
+}
+```
+
+Or leave as-is since `localhost` traffic doesn’t require TLS.
 
 ---
 
-## ✅ Recommended
+## 🧪 Verify Setup
 
-If you prefer:
-- Git-friendly infra
-- Systemd services
-- Local tunnel config
+- Visit `https://immich.vasujain.me`, `https://linkding.vasujain.me`, etc.
+- All requests go through:
+  1. Cloudflare Edge
+  2. cloudflared tunnel
+  3. Caddy reverse proxy
+  4. Local service
 
-→ Use **CLI-managed tunnels + Caddy**.
+---
+
+## 📂 File Summary
+
+| File                             | Purpose                          |
+|----------------------------------|----------------------------------|
+| `/etc/cloudflared/config.yaml`  | Tunnel ingress → Caddy          |
+| `/etc/systemd/system/cloudflared.service` | Run tunnel as service      |
+| `/etc/caddy/Caddyfile`          | Route domains to services        |
+
+---
+
+## 📌 Tips
+
+- Use `journalctl -u caddy -f` and `journalctl -u cloudflared -f` to debug.
+- You can use `tailscale` for internal access bypassing Caddy.
+
+---
+
+## ✅ You’re Done!
+
+You now have a **declarative, CLI-managed Cloudflare Tunnel**, with **Caddy** handling all routing to local services like Immich, Linkding, Gitea, etc.
 
 ```
