@@ -1,30 +1,29 @@
-# 🛠️ Full Guide: Caddy Reverse Proxy + Cloudflare Tunnel (CLI-Managed)
+# 🛠️ Guide: Caddy Reverse Proxy (Docker) + Cloudflare Tunnel (CLI)
 
-This guide sets up **Caddy** as the reverse proxy for all your self-hosted services, with **Cloudflare Tunnel** forwarding HTTPS traffic to Caddy on port 2015. This setup is robust, version-controllable, and uses a single `cloudflared` tunnel.
+This guide helps you set up **Caddy via Docker Compose** as a reverse proxy for self-hosted services, while using **Cloudflare Tunnel (CLI-managed)** to expose Caddy to the internet securely.
 
 ---
 
 ## ✅ Prerequisites
 
-- Domain with Cloudflare (e.g., `vasujain.me`)
-- Raspberry Pi or Linux server with:
-  - `cloudflared` installed
-  - `caddy` installed (bare metal preferred)
-- Services already running locally (e.g., Immich, Linkding, Gitea, etc.)
+- Domain on Cloudflare (e.g., `vasujain.me`)
+- `cloudflared` installed and tunnel created (`cloudflared tunnel create pi-homelab`)
+- Docker + Docker Compose installed
+- Local services (e.g., Immich, Linkding) already running
 
 ---
 
-## 📁 Step 1: Create Cloudflared Tunnel and Config
+## 📁 Step 1: Cloudflared Tunnel Config
 
-If not already done:
+Create tunnel (if not already):
 
 ```bash
 cloudflared tunnel create pi-homelab
 ```
 
-Save the generated credentials JSON (usually at `~/.cloudflared/<uuid>.json`)
+This creates a JSON file: `~/.cloudflared/<UUID>.json`
 
-Now create the config file:
+Create the config:
 
 ```bash
 sudo mkdir -p /etc/cloudflared
@@ -47,19 +46,14 @@ ingress:
   - hostname: git.vasujain.me
     service: http://localhost:2015
 
-  - hostname: files.vasujain.me
-    service: http://localhost:2015
-
   - service: http_status:404
 ```
 
-> Replace `xxxxxxxx-xxxx...` with actual UUID filename.
-
-This will forward all public domains to your Caddy running on `localhost:2015`.
+Replace `xxxxxxxx-xxxx...` with actual file name.
 
 ---
 
-## 🧩 Step 2: Set Up systemd Service for cloudflared
+## ⚙️ Step 2: Setup `cloudflared` as systemd Service
 
 ```bash
 sudo nano /etc/systemd/system/cloudflared.service
@@ -84,105 +78,110 @@ RestartSec=5s
 WantedBy=multi-user.target
 ```
 
-Enable and start it:
+Enable it:
 
 ```bash
-sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 sudo systemctl enable cloudflared
 sudo systemctl start cloudflared
 ```
 
-Check status:
-
-```bash
-sudo journalctl -u cloudflared -f
-```
-
 ---
 
-## 🌐 Step 3: Caddy Configuration (Bare Metal)
+## 📦 Step 3: Caddy with Docker Compose
 
-Edit or create your `Caddyfile` (default: `/etc/caddy/Caddyfile`):
+### 🔹 Directory structure:
 
-```bash
-sudo nano /etc/caddy/Caddyfile
+```
+/home/pi/caddy/
+│
+├── Caddyfile
+├── docker-compose.yaml
+└── data/         # auto-created for certificates
 ```
 
-Example:
+### 🔹 `Caddyfile`
 
 ```caddyfile
 immich.vasujain.me {
-  reverse_proxy localhost:2283
+  reverse_proxy host.docker.internal:2283
 }
 
 linkding.vasujain.me {
-  reverse_proxy localhost:9090
+  reverse_proxy host.docker.internal:9090
 }
 
 git.vasujain.me {
-  reverse_proxy localhost:9220
-}
-
-files.vasujain.me {
-  reverse_proxy localhost:9600
+  reverse_proxy host.docker.internal:9220
 }
 ```
 
-Then restart Caddy:
+If running services inside other containers in the same network, replace `host.docker.internal` with container names.
+
+### 🔹 `docker-compose.yaml`
+
+```yaml
+version: "3.8"
+
+services:
+  caddy:
+    image: caddy:alpine
+    container_name: caddy
+    restart: always
+    ports:
+      - "2015:2015"  # used internally by cloudflared
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./data:/data
+      - ./config:/config
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    driver: bridge
+```
+
+> ⚠️ Port `2015` is arbitrary but must match what's in `cloudflared`'s config (`localhost:2015`).
+
+Start it:
 
 ```bash
-sudo systemctl restart caddy
+docker compose up -d
 ```
 
 ---
 
-## 🔒 Optional: Add Local TLS
+## 🧪 Step 4: Verify Setup
 
-Since cloudflared handles HTTPS and Caddy is only local:
+- Visit `https://immich.vasujain.me`
+- You should see your local Immich app
+- `cloudflared` forwards the domain to `localhost:2015`, which is handled by Caddy (inside Docker)
 
-- You can disable HTTPS enforcement in Caddy using:
+---
 
-```caddyfile
-http:// {
-  # fallback for local requests
-}
+## 🔄 Optional: Restart Everything
+
+```bash
+sudo systemctl restart cloudflared
+docker compose -f /home/pi/caddy/docker-compose.yaml restart
 ```
 
-Or leave as-is since `localhost` traffic doesn’t require TLS.
-
 ---
 
-## 🧪 Verify Setup
+## 🗂️ Summary of Key Files
 
-- Visit `https://immich.vasujain.me`, `https://linkding.vasujain.me`, etc.
-- All requests go through:
-  1. Cloudflare Edge
-  2. cloudflared tunnel
-  3. Caddy reverse proxy
-  4. Local service
-
----
-
-## 📂 File Summary
-
-| File                             | Purpose                          |
-|----------------------------------|----------------------------------|
-| `/etc/cloudflared/config.yaml`  | Tunnel ingress → Caddy          |
-| `/etc/systemd/system/cloudflared.service` | Run tunnel as service      |
-| `/etc/caddy/Caddyfile`          | Route domains to services        |
-
----
-
-## 📌 Tips
-
-- Use `journalctl -u caddy -f` and `journalctl -u cloudflared -f` to debug.
-- You can use `tailscale` for internal access bypassing Caddy.
+| File | Purpose |
+|------|---------|
+| `/etc/cloudflared/config.yaml` | Maps domains to `localhost:2015` |
+| `~/caddy/Caddyfile` | Reverse proxy definitions |
+| `~/caddy/docker-compose.yaml` | Caddy Docker setup |
+| `/etc/systemd/system/cloudflared.service` | Tunnel as service |
 
 ---
 
 ## ✅ You’re Done!
 
-You now have a **declarative, CLI-managed Cloudflare Tunnel**, with **Caddy** handling all routing to local services like Immich, Linkding, Gitea, etc.
+Your public domains are now securely tunneled via Cloudflare to a Caddy instance running in Docker, which routes traffic to your local services using clean code configuration.
 
 ```
