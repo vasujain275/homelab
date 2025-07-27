@@ -98,7 +98,7 @@ openssl rand -hex 32
 **c. Set your user password:**
 Edit the **new** `authelia/users_database.yml` file. Generate a secure password hash by running the following command and replacing `'your_password'` with your desired password.
 ```bash
-docker run authelia/authelia:latest authelia hash-password 'your_password'
+ docker run authelia/authelia:latest authelia crypto hash generate argon2 --password 'your_password'
 ```
 Copy the entire output (starting with `$argon2id$...`) and paste it as the `password` value in `users_database.yml`.
 
