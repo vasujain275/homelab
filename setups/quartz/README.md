@@ -29,8 +29,8 @@ For this setup to work, the following directory structure must be created on the
 │           ├── .gitignore              # (This repository)
 │           ├── docker-compose.yml      # (This repository)
 │           └── authelia/
-│               ├── configuration.yml
-│               └── users_database.yml.example #<-- Secrets template
+│               ├── configuration.yml.example #<-- Main config template
+│               └── users_database.yml.example  #<-- User secrets template
 │
 ├── notes/                          #<-- YOUR OBSIDIAN VAULT (Must be created)
 │
@@ -56,7 +56,7 @@ Ensure the new machine has the following installed:
 Clone this repository to the correct location:
 
 ```bash
-git clone http://github.com/vasujain275/homelab ~/homelab
+git clone https://github.com/vasujain275/homelab ~/homelab
 ```
 
 ### 3. Create Service and Notes Directories
@@ -82,24 +82,25 @@ git clone https://github.com/jackyzha0/quartz.git
 
 Navigate to the configuration directory: `cd /home/pi/homelab/setups/quartz/`
 
-**a. Create your secrets file:**
-Copy the example file to create your local, un-versioned secrets file.
+**a. Create your local configuration files:**
+Copy the example templates to create your real, un-versioned config files.
 ```bash
+cp authelia/configuration.yml.example authelia/configuration.yml
 cp authelia/users_database.yml.example authelia/users_database.yml
 ```
 
-**b. Set your user password:**
-Edit the **new** `authelia/users_database.yml` file. Generate a secure password hash by running the following command and replacing `'your_password'` with a strong password.
+**b. Set the session secret:**
+Edit the **new** `authelia/configuration.yml` file. Find the `session.secret` line and replace the placeholder value. You can generate a strong, random secret with this command:
+```bash
+openssl rand -hex 32
+```
+
+**c. Set your user password:**
+Edit the **new** `authelia/users_database.yml` file. Generate a secure password hash by running the following command and replacing `'your_password'` with your desired password.
 ```bash
 docker run authelia/authelia:latest authelia hash-password 'your_password'
 ```
 Copy the entire output (starting with `$argon2id$...`) and paste it as the `password` value in `users_database.yml`.
-
-**c. Set the session secret:**
-Edit `authelia/configuration.yml` and replace the placeholder value for `session.secret`. You can generate a new one with:
-```bash
-openssl rand -hex 32
-```
 
 ### 6. Edit Your `hosts` File
 
@@ -131,10 +132,10 @@ Once the setup is complete, you can access your digital garden and the Traefik d
 
 * **Digital Garden:**
     * URL: **`http://garden.local:9111`**
-    * You will be redirected to the Authelia login page first. Use the credentials you configured in `users_database.yml`.
+    * You will be redirected to the Authelia login page first. Use the credentials you configured.
 
 * **Traefik Dashboard (for debugging):**
-    * URL: **`http://<your-pi-ip-address>:8081`**
+    * URL: **`http://<your-pi-ip-address>:9112`**
 
 ---
 

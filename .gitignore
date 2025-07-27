@@ -1,2 +1,3 @@
 .env
-setups/quatrz-public
+setups/quatrz/authelia/configuration.yml
+setups/quatrz/authelia/users_database.yml
