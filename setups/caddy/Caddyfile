@@ -1,0 +1,15 @@
+immich.vasujain.me {
+  reverse_proxy 192.168.1.50:2283
+}
+
+linkding.vasujain.me {
+  reverse_proxy 192.168.1.50:9090
+}
+
+git.vasujain.me {
+  reverse_proxy 192.168.1.50:3000
+}
+
+vault.vasujain.me {
+  reverse_proxy 192.168.1.50:8080
+}

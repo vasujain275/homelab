@@ -1,0 +1,11 @@
+# This is an example file. Copy it to users_database.yml and fill in your secrets.
+# DO NOT COMMIT the users_database.yml file to Git.
+users:
+  john:
+    displayname: "John Doe"
+    # To generate a password hash, run this on your Pi:
+    # docker run authelia/authelia:latest authelia hash-password 'your_password'
+    password: "$argon2id$v=19$m=65536,t=3,p=4$your_generated_hash_here"
+    email: john.doe@example.com
+    groups:
+      - users

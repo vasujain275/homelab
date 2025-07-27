@@ -1,0 +1,21 @@
+services:
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "8787:8787"   # Caddy will listen on this internal port
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - homelab
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  homelab:
+    external: false

@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  caddy:
+    image: caddy:alpine
+    container_name: caddy
+    restart: always
+    ports:
+      - "2015:2015"  # used internally by cloudflared
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - /home/pi/services/caddy/data:/data
+      - /home/pi/services/config:/config
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    driver: bridge
