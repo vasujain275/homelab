@@ -1,0 +1,3 @@
+# Ignore Authelia secret files
+authelia/users_database.yml
+authelia/configuration.yml

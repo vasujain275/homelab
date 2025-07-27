@@ -32,20 +32,13 @@ services:
     image: authelia/authelia:latest
     container_name: authelia
     volumes:
-      # This now expects a user-created configuration.yml and users_database.yml
       - ./authelia:/config
     networks:
       - garden-net
     depends_on:
       - redis
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.authelia.rule=Host(`auth.garden.local`)"
-      - "traefik.http.routers.authelia.entrypoints=web"
-      - "traefik.http.services.authelia.loadbalancer.server.port=9091"
-      - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=https://auth.garden.local/"
-      - "traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true"
-      - "traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
+    # NOTE: No Traefik labels needed here anymore.
+    # It will only be used internally by the forward-auth middleware.
     restart: unless-stopped
 
   quartz-builder:
@@ -70,8 +63,13 @@ services:
       - garden-net
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.quartz.rule=Host(`garden.local`)"
+      # This rule makes this service the default for any traffic on the 'web' entrypoint.
+      - "traefik.http.routers.quartz.rule=HostRegexp(`{host:.+}`)"
       - "traefik.http.routers.quartz.entrypoints=web"
+      # The middleware still points to the Authelia service by its container name.
+      - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/verify?rd=http://authelia:9091/"
+      - "traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
       - "traefik.http.routers.quartz.middlewares=authelia@docker"
       - "traefik.http.services.quartz.loadbalancer.server.port=80"
     restart: unless-stopped

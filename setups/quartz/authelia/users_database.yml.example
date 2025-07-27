@@ -2,10 +2,10 @@
 # DO NOT COMMIT the users_database.yml file to Git.
 users:
   john:
-    displayname: "John Doe"
+    displayname: "Vasu Jain"
     # To generate a password hash, run this on your Pi:
-    # docker run authelia/authelia:latest authelia hash-password 'your_password'
+    #  docker run authelia/authelia:latest authelia crypto hash generate argon2 --password 'your_password'
     password: "$argon2id$v=19$m=65536,t=3,p=4$your_generated_hash_here"
-    email: john.doe@example.com
+    email: mail@vasujain.me
     groups:
       - users

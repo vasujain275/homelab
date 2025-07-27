@@ -1,7 +1,6 @@
 # This is an example file. Copy it to configuration.yml and fill in your secrets.
 # DO NOT COMMIT the configuration.yml file to Git.
 
-# Define how users are authenticated. We use a local file.
 authentication_backend:
   file:
     path: /config/users_database.yml
@@ -13,30 +12,22 @@ authentication_backend:
       salt_length: 16
       key_length: 32
 
-# Session configuration for user cookies.
 session:
-  # This secret is critical. Replace it with a long, random string.
-  # Generate one with: openssl rand -hex 32
   secret: "REPLACE_THIS_WITH_A_LONG_RANDOM_STRING"
   name: "garden_session"
   redis:
     host: redis
     port: 6379
 
-# Server settings for the Authelia container itself.
 server:
   host: 0.0.0.0
   port: 9091
 
-# Default security policy is to deny all access unless a rule permits it.
+# By default, Authelia will now protect every request forwarded to it.
+# We have removed the specific domain rule.
 access_control:
-  default_policy: deny
-  rules:
-    # This rule allows users who pass 1-factor authentication to access garden.local.
-    - domain: "garden.local"
-      policy: one_factor
+  default_policy: one_factor
 
-# Where to log notifications (optional).
 notifier:
   filesystem:
     filename: /config/notification.txt
