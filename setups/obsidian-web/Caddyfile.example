@@ -1,0 +1,10 @@
+:80 {
+    basic_auth {
+        # Replace 'admin' with your desired username.
+        # Replace the hash below with one generated using the command in the README.
+        admin JDJhJDE0JGhmYUdUcFZQRUguNGxtSjBIZnZ3bnV4dnlzTFBqV3ZOM0hsbXZWcEZHMmZINmZQLmxkMmUu
+    }
+
+    # This forwards traffic to the quartz container.
+    reverse_proxy quartz:80
+}

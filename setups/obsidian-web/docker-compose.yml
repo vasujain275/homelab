@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  caddy:
+    image: caddy:latest
+    platform: linux/arm64
+    container_name: caddy-proxy
+    restart: unless-stopped
+    ports:
+      # This is the single port your Cloudflare Tunnel will connect to
+      - "9111:80"
+    volumes:
+      # Link to the Caddyfile you created
+      - ./Caddyfile:/etc/caddy/Caddyfile
+
+  quartz:
+    image: vasujain275/dockerized-quartz
+    platform: linux/arm64
+    container_name: quartz-simple
+    restart: unless-stopped
+    environment:
+      - AUTO_REBUILD=true
+      - BUILD_UPDATE_DELAY=10
+    volumes:
+      - /home/pi/notes:/vault:ro
