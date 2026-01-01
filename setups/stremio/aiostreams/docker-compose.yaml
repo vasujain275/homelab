@@ -1,0 +1,21 @@
+services:
+  aiostreams:
+    image: ghcr.io/viren070/aiostreams:latest
+    container_name: aiostreams
+    restart: unless-stopped
+
+    ports:
+      - "9775:3000"
+
+    env_file:
+      - .env
+
+    volumes:
+      - /home/pi/services/stremio/aiostreams/data:/app/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/v1/status"]
+      interval: 1m
+      timeout: 10s
+      retries: 5
+      start_period: 10s

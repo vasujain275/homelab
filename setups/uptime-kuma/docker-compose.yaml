@@ -1,0 +1,24 @@
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+
+    # Security & stability
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+    # Data persistence
+    volumes:
+      - /home/pi/services/uptime-kuma:/app/data
+
+    # Networking (prefer reverse proxy, but port is fine)
+    ports:
+      - "3001:3001"
+
+    # Health check (important for monitoring the monitor 😄)
+    healthcheck:
+      test: ["CMD", "node", "server/server.js", "--health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

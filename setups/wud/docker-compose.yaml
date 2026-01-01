@@ -1,0 +1,30 @@
+
+services:
+  wud:
+    image: ghcr.io/getwud/wud:latest
+    container_name: wud
+    restart: unless-stopped
+
+    ports:
+      - "3002:3000"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/data
+
+    environment:
+      TZ: Asia/Kolkata
+
+      # Core
+      WUD_LOG_LEVEL: info
+      WUD_SERVER_PORT: 3000
+      WUD_DATA_DIR: /data
+
+      # Docker provider
+      WUD_PROVIDER_DOCKER: "true"
+      WUD_PROVIDER_DOCKER_WATCHBYDEFAULT: "false"
+
+      # Telegram notifications
+      WUD_NOTIFIER_TELEGRAM_ENABLED: "true"
+      WUD_NOTIFIER_TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      WUD_NOTIFIER_TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
