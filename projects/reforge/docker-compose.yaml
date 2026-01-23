@@ -1,0 +1,37 @@
+# ============================================================================
+# Reforge Docker Compose - Production Deployment
+# ============================================================================
+
+services:
+  reforge:
+    image: vasujain275/reforge:latest
+    container_name: reforge
+    restart: unless-stopped
+    ports:
+      - "9173:9173"
+    volumes:
+      # Bind mount for SQLite database persistence
+      - /home/pi/services/reforge/data:/app/data
+    environment:
+      - ADDR=:9173
+      - ENV=prod
+      - JWT_SECRET=${JWT_SECRET}
+      - GOOSE_DBSTRING=file:/app/data/reforge.db?_pragma=journal_mode(WAL)&_pragma=foreign_keys(ON)
+      - GOOSE_DRIVER=sqlite
+      - GOOSE_MIGRATION_DIR=/app/migrations
+      # Scoring weights (optional - defaults are used if not set)
+      - DEFAULT_W_CONF=${DEFAULT_W_CONF:-0.30}
+      - DEFAULT_W_DAYS=${DEFAULT_W_DAYS:-0.20}
+      - DEFAULT_W_ATTEMPTS=${DEFAULT_W_ATTEMPTS:-0.10}
+      - DEFAULT_W_TIME=${DEFAULT_W_TIME:-0.05}
+      - DEFAULT_W_DIFFICULTY=${DEFAULT_W_DIFFICULTY:-0.15}
+      - DEFAULT_W_FAILED=${DEFAULT_W_FAILED:-0.10}
+      - DEFAULT_W_PATTERN=${DEFAULT_W_PATTERN:-0.10}
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9173/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
