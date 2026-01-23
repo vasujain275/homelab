@@ -4,6 +4,10 @@ services:
     container_name: aiostreams
     restart: unless-stopped
 
+    labels:
+      - wud.watch=true
+      - wud.autoUpdate=true
+
     ports:
       - "9775:3000"
 
