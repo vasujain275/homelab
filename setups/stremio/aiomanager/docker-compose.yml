@@ -1,0 +1,22 @@
+services:
+  aiomanager:
+    image: ghcr.io/sonicx161/aiomanager:latest
+    container_name: aiomanager
+    restart: unless-stopped
+    ports:
+      - "9610:1610"
+    env_file:
+      - .env
+    volumes:
+      - /home/pi/services/aiomanager:/app/data
+    healthcheck:
+      test: [ "CMD", "node", "server/healthcheck.js" ]
+      interval: 1m
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

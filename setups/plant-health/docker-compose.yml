@@ -1,0 +1,19 @@
+services:
+  backend:
+    image: ghcr.io/moniya03/plant-health/backend:latest
+    ports:
+      - "9966:8000"
+    volumes:
+      - plant-data:/app/data
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  plant-data:
