@@ -1,0 +1,12 @@
+services:
+  watchtower:
+    image: nickfedor/watchtower:latest   # maintained fork; swap to containrrr/watchtower if you prefer
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=86400
+      - WATCHTOWER_NOTIFICATION_URL=ntfy://ntfy.sh/vjslayer_pi_watchtower?title=Watchtower
+      - WATCHTOWER_NOTIFICATION_SKIP_TITLE=true

@@ -1,0 +1,7 @@
+services:
+  app:
+    image: ghcr.io/rareanimeaddon-blip/infinite-streams-v2:latest
+    container_name: infinite-streams
+    restart: unless-stopped
+    ports:
+      - "7699:10000"
